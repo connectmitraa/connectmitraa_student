@@ -38,6 +38,7 @@ export const LiveClassRoom = ({ classSession, onLeave }) => {
 
   const localVideoRef = useRef(null);
   const localStreamRef = useRef(null);
+  const simTimerRef = useRef(null);
 
   // Initialize WebRTC local stream with camera/mic
   useEffect(() => {
@@ -60,7 +61,7 @@ export const LiveClassRoom = ({ classSession, onLeave }) => {
         canvas.height = 360;
         const ctx = canvas.getContext('2d');
         let frame = 0;
-        const timer = setInterval(() => {
+        simTimerRef.current = setInterval(() => {
           frame++;
           ctx.fillStyle = '#1e1b4b';
           ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -77,13 +78,16 @@ export const LiveClassRoom = ({ classSession, onLeave }) => {
         if (localVideoRef.current) {
           localVideoRef.current.srcObject = simStream;
         }
-        return () => clearInterval(timer);
       }
     };
 
     startMedia();
 
     return () => {
+      if (simTimerRef.current) {
+        clearInterval(simTimerRef.current);
+        simTimerRef.current = null;
+      }
       if (localStreamRef.current) {
         localStreamRef.current.getTracks().forEach((track) => track.stop());
       }

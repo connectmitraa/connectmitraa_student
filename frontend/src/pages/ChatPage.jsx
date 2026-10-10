@@ -10,16 +10,19 @@ import {
   Smile
 } from 'lucide-react';
 
-export const ChatPage = ({ currentUrlParams }) => {
+export const ChatPage = ({ navigate, currentRoute }) => {
   const { user, allUsers, messages, sendMessage } = useApp();
   const [selectedUser, setSelectedUser] = useState(null);
   const [inputText, setInputText] = useState('');
   const [search, setSearch] = useState('');
   const messagesEndRef = useRef(null);
 
-  // Initialize selectedUser from URL params if present
+  // Initialize selectedUser from URL params or currentRoute
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
+    const searchStr = currentRoute && currentRoute.includes('?')
+      ? currentRoute.substring(currentRoute.indexOf('?'))
+      : window.location.search;
+    const params = new URLSearchParams(searchStr);
     const targetId = params.get('user');
     const targetName = params.get('name');
 
@@ -35,7 +38,7 @@ export const ChatPage = ({ currentUrlParams }) => {
       const defaultUser = allUsers.find((u) => u.id !== user.id);
       if (defaultUser) setSelectedUser(defaultUser);
     }
-  }, [allUsers, user.id]);
+  }, [currentRoute, allUsers, user.id]);
 
   // Scroll to bottom when message arrives
   useEffect(() => {
@@ -129,7 +132,12 @@ export const ChatPage = ({ currentUrlParams }) => {
               return (
                 <div
                   key={chat.id}
-                  onClick={() => setSelectedUser(chat)}
+                  onClick={() => {
+                    setSelectedUser(chat);
+                    if (navigate) {
+                      navigate(`/Chat?user=${chat.id}&name=${encodeURIComponent(chat.full_name)}`);
+                    }
+                  }}
                   style={{
                     padding: '0.875rem 1rem',
                     display: 'flex',

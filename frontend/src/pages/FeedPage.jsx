@@ -13,17 +13,19 @@ import {
   Share2,
   Code2,
   Send,
-  Sparkles
+  Sparkles,
+  Trash2
 } from 'lucide-react';
 
 export const FeedPage = () => {
-  const { user, posts, comments, createPost, likePost, addComment, showToast } = useApp();
+  const { user, posts, comments, createPost, likePost, addComment, deletePost, showToast } = useApp();
   const [content, setContent] = useState('');
   const [postType, setPostType] = useState('knowledge');
   const [codeSnippet, setCodeSnippet] = useState('');
   const [showCodeInput, setShowCodeInput] = useState(false);
   const [expandedComments, setExpandedComments] = useState({});
   const [commentInputs, setCommentInputs] = useState({});
+  const [feedCategoryFilter, setFeedCategoryFilter] = useState('all');
 
   const postTypes = [
     { value: 'question', label: 'Ask', icon: HelpCircle, color: 'text-amber-600', bg: 'bg-amber-50', style: { color: '#d97706', backgroundColor: '#fffbeb' } },
@@ -78,6 +80,10 @@ export const FeedPage = () => {
     if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
     return `${Math.floor(diff / 86400)}d ago`;
   };
+
+  const filteredPosts = feedCategoryFilter === 'all'
+    ? posts
+    : posts.filter((p) => p.post_type === feedCategoryFilter);
 
   return (
     <div className="page-container" style={{ maxWidth: '44rem' }}>
@@ -211,62 +217,127 @@ export const FeedPage = () => {
         </div>
       </div>
 
+      {/* Feed Filter Bar */}
+      <div style={{ display: 'flex', gap: '0.375rem', overflowX: 'auto', paddingBottom: '0.5rem', marginBottom: '1rem' }}>
+        <button
+          type="button"
+          onClick={() => setFeedCategoryFilter('all')}
+          style={{
+            padding: '0.25rem 0.75rem',
+            borderRadius: '9999px',
+            fontSize: '0.8125rem',
+            fontWeight: 500,
+            backgroundColor: feedCategoryFilter === 'all' ? 'var(--primary)' : 'var(--card)',
+            color: feedCategoryFilter === 'all' ? '#ffffff' : 'var(--muted-foreground)',
+            border: '1px solid var(--border)',
+            whiteSpace: 'nowrap'
+          }}
+        >
+          All Posts
+        </button>
+        {postTypes.map((t) => {
+          const isSelected = feedCategoryFilter === t.value;
+          return (
+            <button
+              key={t.value}
+              type="button"
+              onClick={() => setFeedCategoryFilter(t.value)}
+              style={{
+                padding: '0.25rem 0.75rem',
+                borderRadius: '9999px',
+                fontSize: '0.8125rem',
+                fontWeight: 500,
+                backgroundColor: isSelected ? 'var(--foreground)' : 'var(--card)',
+                color: isSelected ? '#ffffff' : 'var(--muted-foreground)',
+                border: '1px solid var(--border)',
+                whiteSpace: 'nowrap'
+              }}
+            >
+              {t.label}
+            </button>
+          );
+        })}
+      </div>
+
       {/* Feed Stream */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-        {posts.map((post) => {
-          const typeMeta = postTypes.find((t) => t.value === post.post_type) || postTypes[1];
-          const TypeIcon = typeMeta.icon;
-          const isLiked = (post.liked_by || []).includes(user.id);
-          const postComments = comments.filter((c) => c.post_id === post.id);
-          const isCommentsOpen = !!expandedComments[post.id];
+        {filteredPosts.length === 0 ? (
+          <div className="card">
+            <div className="card-content" style={{ padding: '2.5rem', textAlign: 'center', color: 'var(--muted-foreground)' }}>
+              No posts found in this category. Be the first to share!
+            </div>
+          </div>
+        ) : (
+          filteredPosts.map((post) => {
+            const typeMeta = postTypes.find((t) => t.value === post.post_type) || postTypes[1];
+            const TypeIcon = typeMeta.icon;
+            const isLiked = (post.liked_by || []).includes(user.id);
+            const postComments = comments.filter((c) => c.post_id === post.id);
+            const isCommentsOpen = !!expandedComments[post.id];
+            const isAuthorOrAdmin = user.id === post.user_id || user.role === 'admin';
 
-          return (
-            <div key={post.id} className="card">
-              <div className="card-content" style={{ padding: '1.25rem' }}>
-                {/* Author Info */}
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                    <div className="avatar-circle">
-                      {post.author_photo ? (
-                        <img src={post.author_photo} alt={post.author_name} />
-                      ) : (
-                        (post.author_name || 'S').charAt(0).toUpperCase()
-                      )}
-                    </div>
-                    <div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
-                        <span style={{ fontWeight: 600, fontSize: '0.9375rem', color: 'var(--foreground)' }}>
-                          {post.author_name}
-                        </span>
-                        {post.author_verified && (
-                          <CheckCircle style={{ width: '0.95rem', height: '0.95rem', color: 'var(--accent)' }} />
+            return (
+              <div key={post.id} className="card">
+                <div className="card-content" style={{ padding: '1.25rem' }}>
+                  {/* Author Info */}
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                      <div className="avatar-circle">
+                        {post.author_photo ? (
+                          <img src={post.author_photo} alt={post.author_name} />
+                        ) : (
+                          (post.author_name || 'S').charAt(0).toUpperCase()
                         )}
                       </div>
-                      <div style={{ fontSize: '0.75rem', color: 'var(--muted-foreground)', display: 'flex', gap: '0.5rem' }}>
-                        <span>{post.author_college || 'Student'}</span>
-                        <span>•</span>
-                        <span>{formatTimeAgo(post.created_date)}</span>
+                      <div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
+                          <span style={{ fontWeight: 600, fontSize: '0.9375rem', color: 'var(--foreground)' }}>
+                            {post.author_name}
+                          </span>
+                          {post.author_verified && (
+                            <CheckCircle style={{ width: '0.95rem', height: '0.95rem', color: 'var(--accent)' }} />
+                          )}
+                        </div>
+                        <div style={{ fontSize: '0.75rem', color: 'var(--muted-foreground)', display: 'flex', gap: '0.5rem' }}>
+                          <span>{post.author_college || 'Student'}</span>
+                          <span>•</span>
+                          <span>{formatTimeAgo(post.created_date)}</span>
+                        </div>
                       </div>
                     </div>
-                  </div>
 
-                  {/* Post Type Badge */}
-                  <span
-                    style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '0.375rem',
-                      padding: '0.25rem 0.625rem',
-                      borderRadius: '9999px',
-                      fontSize: '0.75rem',
-                      fontWeight: 600,
-                      ...typeMeta.style
-                    }}
-                  >
-                    <TypeIcon style={{ width: '0.8rem', height: '0.8rem' }} />
-                    {typeMeta.label}
-                  </span>
-                </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      {/* Post Type Badge */}
+                      <span
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '0.375rem',
+                          padding: '0.25rem 0.625rem',
+                          borderRadius: '9999px',
+                          fontSize: '0.75rem',
+                          fontWeight: 600,
+                          ...typeMeta.style
+                        }}
+                      >
+                        <TypeIcon style={{ width: '0.8rem', height: '0.8rem' }} />
+                        {typeMeta.label}
+                      </span>
+
+                      {/* Delete button if author or admin */}
+                      {isAuthorOrAdmin && (
+                        <button
+                          type="button"
+                          onClick={() => deletePost(post.id)}
+                          className="btn btn-ghost btn-sm"
+                          style={{ color: '#ef4444', padding: '0.25rem' }}
+                          title="Delete post"
+                        >
+                          <Trash2 style={{ width: '0.9rem', height: '0.9rem' }} />
+                        </button>
+                      )}
+                    </div>
+                  </div>
 
                 {/* Post Content */}
                 <p style={{ fontSize: '0.9375rem', color: 'var(--foreground)', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>
@@ -426,8 +497,9 @@ export const FeedPage = () => {
               </div>
             </div>
           );
-        })}
-      </div>
+        })
+      )}
     </div>
+  </div>
   );
 };

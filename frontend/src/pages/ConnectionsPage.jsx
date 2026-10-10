@@ -257,6 +257,7 @@ export const ConnectionsPage = ({ navigate }) => {
             {discoverStudents.map((student) => {
               const isConnected = connectedIds.includes(student.id);
               const isPending = sentPendingIds.includes(student.id);
+              const incomingRequest = pendingRequests.find((r) => r.requester_id === student.id);
 
               return (
                 <div key={student.id} className="card" style={{ display: 'flex', flexDirection: 'column' }}>
@@ -301,6 +302,16 @@ export const ConnectionsPage = ({ navigate }) => {
                         >
                           <MessageSquare style={{ width: '0.85rem', height: '0.85rem' }} />
                           Message
+                        </button>
+                      ) : incomingRequest ? (
+                        <button
+                          type="button"
+                          onClick={() => acceptConnection(incomingRequest.id)}
+                          className="btn btn-primary btn-sm"
+                          style={{ width: '100%', backgroundColor: '#10b981' }}
+                        >
+                          <Check style={{ width: '0.85rem', height: '0.85rem' }} />
+                          Accept Request
                         </button>
                       ) : isPending ? (
                         <button

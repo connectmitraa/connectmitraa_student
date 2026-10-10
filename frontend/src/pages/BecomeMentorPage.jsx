@@ -140,17 +140,9 @@ export const BecomeMentorPage = ({ navigate }) => {
                 Application Under Review
               </p>
               <p style={{ fontSize: '0.75rem', color: '#d97706' }}>
-                You have an active pending application. You can inspect or approve it anytime in the Admin Panel tab!
+                Your mentor application has been submitted and is currently under review by our admin team. You will receive your verified mentor badge once approved.
               </p>
             </div>
-            <button
-              type="button"
-              onClick={() => navigate('/admin')}
-              className="btn btn-outline btn-sm"
-              style={{ marginLeft: 'auto', borderColor: '#f59e0b', color: '#b45309' }}
-            >
-              Open in Admin Panel
-            </button>
           </div>
         </div>
       )}

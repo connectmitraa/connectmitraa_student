@@ -11,6 +11,7 @@ import {
   initialMentorApplications,
   initialPlatformSettings
 } from '../data/mockData';
+import { authenticateAdmin, DEMO_ADMIN_CREDENTIALS } from '../services/supabaseAuth';
 
 const AppContext = createContext();
 
@@ -70,12 +71,35 @@ export const AppProvider = ({ children }) => {
     return saved ? JSON.parse(saved) : initialPlatformSettings;
   });
 
+  const defaultRecycleBin = {
+    deletedPosts: [],
+    deletedDoubts: [],
+    revokedMentors: [],
+    cancelledClasses: []
+  };
+
+  const [recycleBin, setRecycleBin] = useState(() => {
+    try {
+      const saved = localStorage.getItem('studyloop_recycle_bin');
+      return saved ? JSON.parse(saved) : defaultRecycleBin;
+    } catch {
+      return defaultRecycleBin;
+    }
+  });
+
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [authMode, setAuthMode] = useState('login');
   const [activeClassRoom, setActiveClassRoom] = useState(null);
   const [toast, setToast] = useState(null);
+  const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(() => {
+    return localStorage.getItem('studyloop_admin_auth') === 'true';
+  });
 
   // Sync state to localStorage
+  useEffect(() => {
+    localStorage.setItem('studyloop_recycle_bin', JSON.stringify(recycleBin));
+  }, [recycleBin]);
+
   useEffect(() => {
     localStorage.setItem('studyloop_users', JSON.stringify(allUsers));
   }, [allUsers]);
@@ -132,11 +156,60 @@ export const AppProvider = ({ children }) => {
 
   // Switch role or specific user for testing
   const switchUser = (roleOrId) => {
-    const target = allUsers.find(u => u.id === roleOrId || u.role === roleOrId);
+    let target = null;
+    if (roleOrId === 'student') {
+      target = allUsers.find(u => u.id === 'usr_1') || allUsers.find(u => u.role === 'student');
+      setIsAdminAuthenticated(false);
+      localStorage.removeItem('studyloop_admin_auth');
+    } else if (roleOrId === 'mentor' || roleOrId === 'usr_2') {
+      target = allUsers.find(u => u.id === 'usr_2') || allUsers.find(u => u.is_verified_mentor);
+      setIsAdminAuthenticated(false);
+      localStorage.removeItem('studyloop_admin_auth');
+    } else if (roleOrId === 'admin') {
+      target = allUsers.find(u => u.id === 'usr_admin') || allUsers.find(u => u.role === 'admin');
+      setIsAdminAuthenticated(true);
+      localStorage.setItem('studyloop_admin_auth', 'true');
+    } else {
+      target = allUsers.find(u => u.id === roleOrId);
+      if (target?.role === 'admin') {
+        setIsAdminAuthenticated(true);
+        localStorage.setItem('studyloop_admin_auth', 'true');
+      } else {
+        setIsAdminAuthenticated(false);
+        localStorage.removeItem('studyloop_admin_auth');
+      }
+    }
     if (target) {
       setCurrentUserId(target.id);
-      showToast(`Switched persona to ${target.full_name} (${target.role.toUpperCase()})`);
+      showToast(`Switched persona to ${target.full_name} (${(target.role || 'USER').toUpperCase()})`);
     }
+  };
+
+  const adminLogin = async (email, password) => {
+    const res = await authenticateAdmin(email, password);
+    if (res.success) {
+      setIsAdminAuthenticated(true);
+      localStorage.setItem('studyloop_admin_auth', 'true');
+      const adminUser = allUsers.find(u => u.id === 'usr_admin') || allUsers.find(u => u.role === 'admin');
+      if (adminUser) {
+        setCurrentUserId(adminUser.id);
+      }
+      showToast(res.mode === 'supabase' ? 'Supabase Admin verified!' : 'Admin Portal Unlocked!');
+      return { success: true };
+    } else {
+      showToast(res.error || 'Admin verification failed', 'error');
+      return { success: false, error: res.error };
+    }
+  };
+
+  const adminLogout = () => {
+    setIsAdminAuthenticated(false);
+    localStorage.removeItem('studyloop_admin_auth');
+    const studentUser = allUsers.find(u => u.id === 'usr_1') || allUsers[0];
+    if (studentUser) {
+      setCurrentUserId(studentUser.id);
+    }
+    showToast('Exited Admin Portal session');
   };
 
   const login = (email, password) => {
@@ -255,8 +328,41 @@ export const AppProvider = ({ children }) => {
   };
 
   const deletePost = (postId) => {
-    setPosts(prev => prev.filter(p => p.id !== postId));
-    showToast("Post removed", "info");
+    const postToDelete = posts.find(p => p.id === postId);
+    if (postToDelete) {
+      const archived = {
+        ...postToDelete,
+        deleted_at: new Date().toISOString(),
+        expires_in_days: 30
+      };
+      setRecycleBin(prev => ({
+        ...prev,
+        deletedPosts: [archived, ...(prev.deletedPosts || []).filter(p => p.id !== postId)]
+      }));
+      setPosts(prev => prev.filter(p => p.id !== postId));
+      showToast("Post moved to Recycle Bin (Retained for 30 days)");
+    }
+  };
+
+  const restorePost = (postId) => {
+    const postToRestore = (recycleBin.deletedPosts || []).find(p => p.id === postId);
+    if (postToRestore) {
+      const { deleted_at, expires_in_days, ...cleanPost } = postToRestore;
+      setPosts(prev => [cleanPost, ...prev]);
+      setRecycleBin(prev => ({
+        ...prev,
+        deletedPosts: (prev.deletedPosts || []).filter(p => p.id !== postId)
+      }));
+      showToast("Post restored to Community Feed! 🎉");
+    }
+  };
+
+  const permanentDeletePost = (postId) => {
+    setRecycleBin(prev => ({
+      ...prev,
+      deletedPosts: (prev.deletedPosts || []).filter(p => p.id !== postId)
+    }));
+    showToast("Post permanently purged.", "info");
   };
 
   // DOUBT ACTIONS
@@ -299,10 +405,55 @@ export const AppProvider = ({ children }) => {
     showToast("Doubt marked as resolved! 🎉");
   };
 
-  const deleteDoubt = (doubtId) => {
-    setDoubts(prev => prev.filter(d => d.id !== doubtId));
-    showToast("Doubt removed", "info");
+  const markSolution = (doubtId, replyId) => {
+    setDoubtReplies(prev => prev.map(r => {
+      if (r.doubt_id === doubtId) {
+        return { ...r, is_solution: r.id === replyId };
+      }
+      return r;
+    }));
+    setDoubts(prev => prev.map(d => d.id === doubtId ? { ...d, status: "resolved" } : d));
+    showToast("Marked reply as accepted solution! 🎉");
   };
+
+  const deleteDoubt = (doubtId) => {
+    const doubtToDelete = doubts.find(d => d.id === doubtId);
+    if (doubtToDelete) {
+      const archived = {
+        ...doubtToDelete,
+        deleted_at: new Date().toISOString(),
+        expires_in_days: 30
+      };
+      setRecycleBin(prev => ({
+        ...prev,
+        deletedDoubts: [archived, ...(prev.deletedDoubts || []).filter(d => d.id !== doubtId)]
+      }));
+      setDoubts(prev => prev.filter(d => d.id !== doubtId));
+      showToast("Doubt moved to Recycle Bin (Retained for 30 days)");
+    }
+  };
+
+  const restoreDoubt = (doubtId) => {
+    const doubtToRestore = (recycleBin.deletedDoubts || []).find(d => d.id === doubtId);
+    if (doubtToRestore) {
+      const { deleted_at, expires_in_days, ...cleanDoubt } = doubtToRestore;
+      setDoubts(prev => [cleanDoubt, ...prev]);
+      setRecycleBin(prev => ({
+        ...prev,
+        deletedDoubts: (prev.deletedDoubts || []).filter(d => d.id !== doubtId)
+      }));
+      showToast("Doubt restored successfully! 🎉");
+    }
+  };
+
+  const permanentDeleteDoubt = (doubtId) => {
+    setRecycleBin(prev => ({
+      ...prev,
+      deletedDoubts: (prev.deletedDoubts || []).filter(d => d.id !== doubtId)
+    }));
+    showToast("Doubt permanently purged.", "info");
+  };
+
 
   // CLASS ACTIONS
   const createClass = (classData) => {
@@ -358,6 +509,24 @@ export const AppProvider = ({ children }) => {
   const sendConnectionRequest = (receiverId) => {
     const receiver = allUsers.find(u => u.id === receiverId);
     if (!receiver) return;
+
+    // Check if connection already exists
+    const existing = connections.find(c =>
+      (c.requester_id === user.id && c.receiver_id === receiverId) ||
+      (c.requester_id === receiverId && c.receiver_id === user.id)
+    );
+
+    if (existing) {
+      if (existing.status === 'accepted') {
+        showToast(`Already connected with ${receiver.full_name}!`, "info");
+      } else if (existing.requester_id === receiverId && existing.status === 'pending') {
+        acceptConnection(existing.id);
+      } else {
+        showToast(`Connection request to ${receiver.full_name} is already pending.`, "info");
+      }
+      return;
+    }
+
     const newConn = {
       id: `conn_${Date.now()}`,
       requester_id: user.id,
@@ -451,18 +620,122 @@ export const AppProvider = ({ children }) => {
   };
 
   const toggleStudentVerification = (userId) => {
+    const target = allUsers.find(u => u.id === userId);
+    if (target && target.is_verified_mentor) {
+      revokeMentor(userId);
+    } else {
+      grantMentor(userId);
+    }
+  };
+
+  const revokeMentor = (userId) => {
+    const target = allUsers.find(u => u.id === userId);
+    if (!target) return;
     setAllUsers(prev => prev.map(u => {
       if (u.id === userId) {
-        const nextStatus = !u.is_verified_mentor;
+        return { ...u, is_verified_mentor: false, is_mentor: false };
+      }
+      return u;
+    }));
+    const archived = {
+      ...target,
+      revoked_at: new Date().toISOString(),
+      expires_in_days: 30
+    };
+    setRecycleBin(prev => ({
+      ...prev,
+      revokedMentors: [archived, ...(prev.revokedMentors || []).filter(m => m.id !== userId)]
+    }));
+    showToast(`${target.full_name}'s mentor status revoked & archived in Recycle Bin.`);
+  };
+
+  const grantMentor = (userId) => {
+    const target = allUsers.find(u => u.id === userId);
+    if (!target) return;
+    setAllUsers(prev => prev.map(u => {
+      if (u.id === userId) {
+        return { ...u, is_verified_mentor: true, is_mentor: true };
+      }
+      return u;
+    }));
+    setRecycleBin(prev => ({
+      ...prev,
+      revokedMentors: (prev.revokedMentors || []).filter(m => m.id !== userId)
+    }));
+    showToast(`${target.full_name} is now a Verified Mentor! ✓`);
+  };
+
+  const restoreRevokedMentor = (userId) => {
+    grantMentor(userId);
+  };
+
+  const permanentDeleteRevokedMentor = (userId) => {
+    setRecycleBin(prev => ({
+      ...prev,
+      revokedMentors: (prev.revokedMentors || []).filter(m => m.id !== userId)
+    }));
+    showToast("Archived record permanently purged.", "info");
+  };
+
+  const cancelClass = (classId) => {
+    const target = classes.find(c => c.id === classId);
+    if (!target) return;
+    const archived = {
+      ...target,
+      cancelled_at: new Date().toISOString(),
+      expires_in_days: 30
+    };
+    setRecycleBin(prev => ({
+      ...prev,
+      cancelledClasses: [archived, ...(prev.cancelledClasses || []).filter(c => c.id !== classId)]
+    }));
+    setClasses(prev => prev.filter(c => c.id !== classId));
+    showToast("Class cancelled & archived in Recycle Bin.");
+  };
+
+  const restoreClass = (classId) => {
+    const target = (recycleBin.cancelledClasses || []).find(c => c.id === classId);
+    if (target) {
+      const { cancelled_at, expires_in_days, ...cleanClass } = target;
+      setClasses(prev => [cleanClass, ...prev]);
+      setRecycleBin(prev => ({
+        ...prev,
+        cancelledClasses: (prev.cancelledClasses || []).filter(c => c.id !== classId)
+      }));
+      showToast("Class restored to Schedule! 🎉");
+    }
+  };
+
+  const permanentDeleteClass = (classId) => {
+    setRecycleBin(prev => ({
+      ...prev,
+      cancelledClasses: (prev.cancelledClasses || []).filter(c => c.id !== classId)
+    }));
+    showToast("Class record permanently purged.", "info");
+  };
+
+  const emptyRecycleBin = () => {
+    setRecycleBin({
+      deletedPosts: [],
+      deletedDoubts: [],
+      revokedMentors: [],
+      cancelledClasses: []
+    });
+    showToast("Recycle Bin cleared completely.", "info");
+  };
+
+
+  const updateProfile = (profileData) => {
+    setAllUsers(prev => prev.map(u => {
+      if (u.id === user.id) {
         return {
           ...u,
-          is_verified_mentor: nextStatus,
-          is_mentor: nextStatus
+          ...profileData
         };
       }
       return u;
     }));
-    showToast("Student verification status toggled");
+    showToast("Profile updated successfully!");
   };
 
   const updatePlatformSettings = (newSettings) => {
@@ -484,6 +757,7 @@ export const AppProvider = ({ children }) => {
         messages,
         mentorApplications,
         platformSettings,
+        recycleBin,
         isAuthModalOpen,
         setIsAuthModalOpen,
         authMode,
@@ -499,12 +773,20 @@ export const AppProvider = ({ children }) => {
         likePost,
         addComment,
         deletePost,
+        restorePost,
+        permanentDeletePost,
         createDoubt,
         replyDoubt,
         resolveDoubt,
         deleteDoubt,
+        restoreDoubt,
+        permanentDeleteDoubt,
+        markSolution,
         createClass,
         joinClass,
+        cancelClass,
+        restoreClass,
+        permanentDeleteClass,
         enterClassRoom,
         leaveClassRoom,
         sendConnectionRequest,
@@ -515,7 +797,16 @@ export const AppProvider = ({ children }) => {
         approveMentorApplication,
         rejectMentorApplication,
         toggleStudentVerification,
-        updatePlatformSettings
+        revokeMentor,
+        grantMentor,
+        restoreRevokedMentor,
+        permanentDeleteRevokedMentor,
+        emptyRecycleBin,
+        updatePlatformSettings,
+        updateProfile,
+        isAdminAuthenticated,
+        adminLogin,
+        adminLogout
       }}
     >
       {children}

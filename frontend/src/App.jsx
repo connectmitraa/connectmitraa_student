@@ -11,19 +11,22 @@ import { ChatPage } from './pages/ChatPage';
 import { ProfilePage } from './pages/ProfilePage';
 import { BecomeMentorPage } from './pages/BecomeMentorPage';
 import { AdminPage } from './pages/AdminPage';
+import { AdminLoginPage } from './pages/AdminLoginPage';
+import { getAdminSecretSlug } from './services/supabaseAuth';
 import { Menu, GraduationCap, User, CheckCircle } from 'lucide-react';
 
+
 export const App = () => {
-  const { toast, user, isAuthModalOpen, setIsAuthModalOpen } = useApp();
+  const { toast, user, isAuthModalOpen, setIsAuthModalOpen, isAdminAuthenticated } = useApp();
   const [currentRoute, setCurrentRoute] = useState(() => {
-    return window.location.pathname || '/Home';
+    return (window.location.pathname || '/Home') + (window.location.search || '');
   });
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
   // Sync route on popstate (browser back/forward button)
   useEffect(() => {
     const handlePopState = () => {
-      setCurrentRoute(window.location.pathname || '/Home');
+      setCurrentRoute((window.location.pathname || '/Home') + (window.location.search || ''));
     };
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
@@ -31,19 +34,19 @@ export const App = () => {
 
   const navigate = (path) => {
     window.history.pushState({}, '', path);
-    setCurrentRoute(path.split('?')[0]);
+    setCurrentRoute(path);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const normalizedRoute = currentRoute.toLowerCase();
+  const normalizedRoute = (currentRoute.split('?')[0] || '').toLowerCase();
 
   // Render Page according to normalized route
   const renderCurrentPage = () => {
     if (normalizedRoute === '/doubts') {
-      return <DoubtsPage />;
+      return <DoubtsPage navigate={navigate} />;
     }
     if (normalizedRoute === '/classes') {
-      return <ClassesPage />;
+      return <ClassesPage navigate={navigate} currentRoute={currentRoute} />;
     }
     if (normalizedRoute === '/connections') {
       return <ConnectionsPage navigate={navigate} />;
@@ -52,7 +55,7 @@ export const App = () => {
       return <MentorsPage navigate={navigate} />;
     }
     if (normalizedRoute === '/chat') {
-      return <ChatPage />;
+      return <ChatPage navigate={navigate} currentRoute={currentRoute} />;
     }
     if (normalizedRoute === '/profile') {
       return <ProfilePage navigate={navigate} />;
@@ -60,12 +63,53 @@ export const App = () => {
     if (normalizedRoute === '/becomementor' || normalizedRoute === '/become-mentor') {
       return <BecomeMentorPage navigate={navigate} />;
     }
-    if (normalizedRoute === '/admin') {
-      return <AdminPage />;
-    }
     // Default to /Home feed
-    return <FeedPage />;
+    return <FeedPage navigate={navigate} />;
   };
+
+  const secretAdminSlug = getAdminSecretSlug().toLowerCase();
+  const isAdminRoute =
+    normalizedRoute === secretAdminSlug ||
+    normalizedRoute === '/connectmitraa-admin' ||
+    normalizedRoute === '/admin-connectmitraa';
+
+
+
+  // Dedicated Full-Page Admin Portal (Isolated from student layout)
+  if (isAdminRoute) {
+    return (
+      <div style={{ minHeight: '100vh', backgroundColor: 'var(--background)' }}>
+        {toast && (
+          <div
+            style={{
+              position: 'fixed',
+              bottom: '1.5rem',
+              right: '1.5rem',
+              backgroundColor: toast.type === 'error' ? '#ef4444' : '#10b981',
+              color: '#ffffff',
+              padding: '0.75rem 1.25rem',
+              borderRadius: 'var(--radius)',
+              boxShadow: 'var(--shadow-lg)',
+              zIndex: 100,
+              fontSize: '0.875rem',
+              fontWeight: 500,
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              animation: 'fadeIn 0.2s ease-out'
+            }}
+          >
+            <span>{toast.message}</span>
+          </div>
+        )}
+        {!isAdminAuthenticated && user.role !== 'admin' ? (
+          <AdminLoginPage navigate={navigate} />
+        ) : (
+          <AdminPage navigate={navigate} />
+        )}
+      </div>
+    );
+  }
 
   return (
     <div className="app-layout">
