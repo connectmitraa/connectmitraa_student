@@ -58,7 +58,7 @@ export const App = () => {
       return <ChatPage navigate={navigate} currentRoute={currentRoute} />;
     }
     if (normalizedRoute === '/profile') {
-      return <ProfilePage navigate={navigate} />;
+      return <ProfilePage navigate={navigate} currentRoute={currentRoute} />;
     }
     if (normalizedRoute === '/becomementor' || normalizedRoute === '/become-mentor') {
       return <BecomeMentorPage navigate={navigate} />;
@@ -74,6 +74,39 @@ export const App = () => {
     normalizedRoute === '/admin-connectmitraa';
 
 
+
+  // Dedicated Full-Page Profile Portal (Isolated from student sidebar layout)
+  if (normalizedRoute === '/profile') {
+    return (
+      <div style={{ minHeight: '100vh', backgroundColor: 'var(--background)' }}>
+        {toast && (
+          <div
+            style={{
+              position: 'fixed',
+              bottom: '1.5rem',
+              right: '1.5rem',
+              backgroundColor: toast.type === 'error' ? '#ef4444' : '#0f172a',
+              color: '#ffffff',
+              padding: '0.75rem 1.25rem',
+              borderRadius: 'var(--radius)',
+              boxShadow: 'var(--shadow-lg)',
+              zIndex: 1000,
+              fontSize: '0.875rem',
+              fontWeight: 500,
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              animation: 'fadeIn 0.2s ease-out'
+            }}
+          >
+            <span>{toast.message}</span>
+          </div>
+        )}
+        <ProfilePage navigate={navigate} currentRoute={currentRoute} />
+        <AuthModal />
+      </div>
+    );
+  }
 
   // Dedicated Full-Page Admin Portal (Isolated from student layout)
   if (isAdminRoute) {

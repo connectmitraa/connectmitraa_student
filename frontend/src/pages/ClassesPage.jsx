@@ -28,6 +28,7 @@ export const ClassesPage = ({ navigate, currentRoute }) => {
   const [sortBy, setSortBy] = useState('soonest'); // 'soonest' | 'popular'
   const [searchQuery, setSearchQuery] = useState('');
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [sharedClassModal, setSharedClassModal] = useState(null);
 
   // Form State
   const [title, setTitle] = useState('');
@@ -43,18 +44,19 @@ export const ClassesPage = ({ navigate, currentRoute }) => {
   const [price, setPrice] = useState('49');
   const [skillExchange, setSkillExchange] = useState(true);
 
-  // Check URL query for shared class
+  // Check URL query for shared class (?class=... or ?room=...)
   useEffect(() => {
     const searchStr = currentRoute && currentRoute.includes('?')
       ? currentRoute.substring(currentRoute.indexOf('?'))
       : window.location.search;
     const params = new URLSearchParams(searchStr);
-    const targetClassId = params.get('class');
+    const targetClassId = params.get('class') || params.get('room');
     if (targetClassId) {
       const found = classes.find((c) => c.id === targetClassId);
       if (found) {
+        setSharedClassModal(found);
         setSearchQuery(found.title);
-        showToast(`Showing shared class: "${found.title}"`);
+        showToast(`🚀 Live Classroom found: "${found.title}"`);
       }
     }
   }, [currentRoute, classes]);
@@ -433,7 +435,11 @@ export const ClassesPage = ({ navigate, currentRoute }) => {
                 )}
 
                 {/* Host Info */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem', marginTop: 'auto', marginBottom: '1rem', paddingTop: '0.75rem', borderTop: '1px solid var(--border)' }}>
+                <div 
+                  style={{ display: 'flex', alignItems: 'center', gap: '0.625rem', marginTop: 'auto', marginBottom: '1rem', paddingTop: '0.75rem', borderTop: '1px solid var(--border)', cursor: 'pointer' }}
+                  onClick={() => navigate?.('/Profile?user=' + (cls.creator_id || 'usr_1'))}
+                  title={`View ${cls.creator_name}'s profile`}
+                >
                   <div className="avatar-circle" style={{ width: '2rem', height: '2rem', fontSize: '0.75rem' }}>
                     {(cls.creator_name || 'M').charAt(0).toUpperCase()}
                   </div>
@@ -694,6 +700,142 @@ export const ClassesPage = ({ navigate, currentRoute }) => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Shared Live Class Instant Entry Modal */}
+      {sharedClassModal && (
+        <div className="modal-overlay" style={{ zIndex: 100 }}>
+          <div className="modal-content" style={{ maxWidth: '30rem', border: '1.5px solid var(--accent)', boxShadow: '0 20px 40px rgba(0,0,0,0.3)' }}>
+            <div className="modal-header" style={{ paddingBottom: '0.5rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <span
+                  style={{
+                    backgroundColor: '#ef4444',
+                    color: '#fff',
+                    padding: '0.2rem 0.6rem',
+                    borderRadius: '9999px',
+                    fontSize: '0.7rem',
+                    fontWeight: 700,
+                    letterSpacing: '0.05em'
+                  }}
+                >
+                  🔴 LIVE INVITATION
+                </span>
+                <span style={{ fontSize: '0.8125rem', color: 'var(--muted-foreground)' }}>Direct Class Link</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSharedClassModal(null)}
+                className="modal-close"
+              >
+                <X style={{ width: '1.25rem', height: '1.25rem' }} />
+              </button>
+            </div>
+
+            <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '1rem', paddingTop: '0.5rem' }}>
+              <div>
+                <span className="badge badge-secondary" style={{ marginBottom: '0.375rem' }}>
+                  {sharedClassModal.subject}
+                </span>
+                <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--foreground)', lineHeight: 1.3 }}>
+                  {sharedClassModal.title}
+                </h3>
+                {sharedClassModal.topic && (
+                  <p style={{ fontSize: '0.875rem', color: 'var(--muted-foreground)', marginTop: '0.25rem' }}>
+                    Topic: {sharedClassModal.topic}
+                  </p>
+                )}
+              </div>
+
+              {/* Host preview card */}
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.75rem',
+                  padding: '0.75rem 1rem',
+                  backgroundColor: 'var(--muted)',
+                  borderRadius: '0.5rem',
+                  border: '1px solid var(--border)',
+                  cursor: 'pointer'
+                }}
+                onClick={() => {
+                  setSharedClassModal(null);
+                  navigate?.('/Profile?user=' + (sharedClassModal.creator_id || 'usr_1'));
+                }}
+                title={`View ${sharedClassModal.creator_name}'s profile`}
+              >
+                <div className="avatar-circle" style={{ width: '2.5rem', height: '2.5rem', fontSize: '1rem' }}>
+                  {(sharedClassModal.creator_name || 'M').charAt(0).toUpperCase()}
+                </div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
+                    <span style={{ fontWeight: 700, fontSize: '0.9rem', color: 'var(--foreground)' }}>
+                      {sharedClassModal.creator_name}
+                    </span>
+                    {sharedClassModal.creator_verified && (
+                      <CheckCircle style={{ width: '0.95rem', height: '0.95rem', color: 'var(--accent)' }} />
+                    )}
+                  </div>
+                  <span style={{ fontSize: '0.75rem', color: 'var(--muted-foreground)' }}>Host & Peer Instructor</span>
+                </div>
+              </div>
+
+              {/* Quick details */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', fontSize: '0.8125rem', color: 'var(--muted-foreground)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
+                  <Calendar style={{ width: '0.9rem', height: '0.9rem' }} />
+                  <span>{sharedClassModal.scheduled_date}</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
+                  <Clock style={{ width: '0.9rem', height: '0.9rem' }} />
+                  <span>{sharedClassModal.scheduled_time} ({sharedClassModal.duration}m)</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
+                  <Users style={{ width: '0.9rem', height: '0.9rem' }} />
+                  <span>{sharedClassModal.participants_count || 1} Enrolled</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.375rem', color: '#10b981', fontWeight: 600 }}>
+                  <Video style={{ width: '0.9rem', height: '0.9rem' }} />
+                  <span>Native WebRTC HD</span>
+                </div>
+              </div>
+
+              {/* Primary action */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginTop: '0.5rem' }}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const target = sharedClassModal;
+                    setSharedClassModal(null);
+                    enterClassRoom(target);
+                  }}
+                  className="btn btn-primary"
+                  style={{
+                    padding: '0.75rem',
+                    fontSize: '1rem',
+                    fontWeight: 700,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '0.5rem'
+                  }}
+                >
+                  <Video style={{ width: '1.25rem', height: '1.25rem' }} />
+                  Enter Live Classroom Now
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSharedClassModal(null)}
+                  className="btn btn-ghost btn-sm"
+                  style={{ color: 'var(--muted-foreground)' }}
+                >
+                  Browse All Classes Instead
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}

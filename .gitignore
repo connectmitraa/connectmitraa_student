@@ -35,3 +35,4 @@ Thumbs.db
 # Temporary & scratch files
 capture.cjs
 screenshots/
+.git_backup/

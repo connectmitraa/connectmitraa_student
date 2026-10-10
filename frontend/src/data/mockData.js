@@ -5,96 +5,313 @@ export const initialUsers = [
     id: "usr_1",
     email: "hemadri@connectmitraa.edu",
     full_name: "Hemadri Kaligiri",
+    headline: "Pre-final Year CS Undergrad @ VIT Chennai | Full Stack & Distributed Systems Enthusiast",
     role: "student",
     college: "VIT Chennai",
-    branch: "Computer Science",
+    branch: "Computer Science & Engineering",
     year: "3rd Year",
+    location: "Chennai, India",
     profile_photo: "",
     is_verified_mentor: false,
     is_mentor: false,
     rating: 4.7,
-    completed_classes: 0,
-    skills: ["Java", "Spring Boot", "React", "Data Structures"],
-    subjects: ["Object Oriented Programming", "Web Technologies"],
-    bio: "Passionate CS student exploring peer-to-peer collaborative learning and distributed systems.",
+    completed_classes: 4,
+    skills: ["Java", "Spring Boot", "React", "Data Structures", "WebSockets", "SQL", "Git"],
+    subjects: ["Object Oriented Programming", "Web Technologies", "Java Fundamentals"],
+    wants_to_learn: ["Distributed Systems", "Kubernetes", "Microservices", "System Design"],
+    bio: "Passionate Computer Science undergrad exploring scalable backend architectures, peer-to-peer collaborative learning, and WebRTC streaming technologies.",
     github_url: "https://github.com/hemadrikaligiri",
-    portfolio_url: "https://hemadri.dev"
+    linkedin_url: "https://linkedin.com/in/hemadrikaligiri",
+    leetcode_url: "https://leetcode.com/hemadrikaligiri",
+    portfolio_url: "https://hemadri.dev",
+    resume_name: "Hemadri_Kaligiri_Resume_2026.pdf",
+    resume_url: "https://raw.githubusercontent.com/hemadrikaligiri/resume/main/Hemadri_Resume.pdf",
+    projects: [
+      {
+        id: "proj_1",
+        title: "ConnectMitraa — Peer-to-Peer Collaborative Learning Platform",
+        description: "Engineered a high-performance student collaboration ecosystem with native WebRTC live classrooms, interactive digital whiteboard, doubts Q&A board, and peer mentor booking.",
+        tech_stack: ["React", "Spring Boot", "WebRTC", "Java 21 Virtual Threads", "PostgreSQL"],
+        github_url: "https://github.com/hemadrikaligiri/connectmitraa",
+        live_url: "https://connectmitraa.edu"
+      },
+      {
+        id: "proj_2",
+        title: "AlgoVisualizer 3D",
+        description: "Interactive data structure & graph traversal visualizer helping students intuitively master Dijkstra, A*, and Dynamic Programming algorithms.",
+        tech_stack: ["JavaScript", "HTML5 Canvas", "Three.js", "CSS3"],
+        github_url: "https://github.com/hemadrikaligiri/algoviz-3d",
+        live_url: "https://algoviz-3d.vercel.app"
+      }
+    ],
+    achievements: [
+      {
+        id: "ach_1",
+        title: "Smart India Hackathon Finalist",
+        issuer: "Ministry of Education & AICTE",
+        date: "2025",
+        description: "Developed an automated peer skill-exchange protocol matching students across 100+ colleges based on academic strengths."
+      },
+      {
+        id: "ach_2",
+        title: "LeetCode Knight Badge (Top 5% Globally)",
+        issuer: "LeetCode",
+        date: "2025",
+        description: "Solved 450+ Data Structures & Algorithms problems with a contest rating of 1860+."
+      }
+    ],
+    experience: [
+      {
+        id: "exp_1",
+        role: "Full Stack Engineering Intern",
+        company: "Vanguard Tech Labs",
+        duration: "May 2025 - Jul 2025 (3 mos)",
+        description: "Designed RESTful microservices in Spring Boot, tuned database indexing reducing query latency by 38%, and implemented responsive React UI components."
+      }
+    ],
+    education: [
+      {
+        id: "edu_1",
+        degree: "B.Tech in Computer Science and Engineering",
+        college: "Vellore Institute of Technology (VIT), Chennai",
+        duration: "2023 - 2027",
+        grade: "CGPA: 8.9 / 10.0"
+      }
+    ]
   },
   {
     id: "usr_2",
     email: "aarav.sharma@iitm.ac.in",
     full_name: "Aarav Sharma",
+    headline: "Senior CS Undergrad @ IIT Madras | Top-Rated Peer Mentor & Distributed Systems Builder",
     role: "mentor",
     college: "IIT Madras",
     branch: "Computer Science & Engineering",
     year: "4th Year",
+    location: "Chennai, India",
     profile_photo: "",
     is_verified_mentor: true,
     is_mentor: true,
     rating: 4.9,
     completed_classes: 65,
-    skills: ["Java", "Spring Boot", "System Design", "Microservices", "Docker"],
-    subjects: ["Backend Architecture", "Data Structures & Algorithms", "Operating Systems"],
-    bio: "Experienced peer mentor. Conducted 65+ peer sessions helping students crack top backend engineering interviews.",
+    skills: ["Java", "Spring Boot", "System Design", "Microservices", "Docker", "Kafka", "PostgreSQL"],
+    subjects: ["Backend Architecture", "Data Structures & Algorithms", "Operating Systems", "Microservices"],
+    wants_to_learn: ["Rust", "Distributed Consensus (Raft)", "eBPF"],
+    bio: "Experienced peer mentor at IIT Madras. Conducted 65+ peer sessions and workshops helping 300+ students crack top product-based engineering interviews.",
     github_url: "https://github.com/aaravsharma",
-    portfolio_url: "https://aarav.tech"
+    linkedin_url: "https://linkedin.com/in/aarav-sharma-iitm",
+    leetcode_url: "https://leetcode.com/aarav_iitm",
+    portfolio_url: "https://aarav.tech",
+    resume_name: "Aarav_Sharma_IITM_Resume.pdf",
+    resume_url: "https://aarav.tech/resume.pdf",
+    projects: [
+      {
+        id: "proj_aarav_1",
+        title: "Distributed Key-Value Store with Raft Consensus",
+        description: "Built a fault-tolerant distributed in-memory key-value database with leader election, log replication, and RPC heartbeat mechanisms.",
+        tech_stack: ["Java", "gRPC", "Protobuf", "Docker"],
+        github_url: "https://github.com/aaravsharma/raft-kv",
+        live_url: ""
+      },
+      {
+        id: "proj_aarav_2",
+        title: "Microservices Event Streaming Engine",
+        description: "Scalable event-driven message pipeline processing 25k transactions per second with Apache Kafka and Spring Cloud.",
+        tech_stack: ["Spring Cloud", "Apache Kafka", "Docker", "PostgreSQL"],
+        github_url: "https://github.com/aaravsharma/stream-engine",
+        live_url: ""
+      }
+    ],
+    achievements: [
+      {
+        id: "ach_aarav_1",
+        title: "ACM ICPC Regionalist",
+        issuer: "ACM ICPC India",
+        date: "2024",
+        description: "Ranked among top 20 teams in the Amritapuri regional competitive programming round."
+      },
+      {
+        id: "ach_aarav_2",
+        title: "Best Peer Mentor Award",
+        issuer: "IIT Madras Academic Council",
+        date: "2025",
+        description: "Recognized for mentoring over 300 engineering juniors in Operating Systems and System Design."
+      }
+    ],
+    experience: [
+      {
+        id: "exp_aarav_1",
+        role: "Software Engineering Intern",
+        company: "Amazon Web Services (AWS)",
+        duration: "May 2025 - Jul 2025",
+        description: "Optimized distributed telemetry log aggregation pipelines using Java and ECS containers."
+      }
+    ],
+    education: [
+      {
+        id: "edu_aarav_1",
+        degree: "B.Tech in Computer Science and Engineering",
+        college: "Indian Institute of Technology (IIT), Madras",
+        duration: "2022 - 2026",
+        grade: "CGPA: 9.3 / 10.0"
+      }
+    ]
   },
   {
     id: "usr_3",
     email: "priya.patel@pilani.bits-pilani.ac.in",
     full_name: "Priya Patel",
+    headline: "AI & ML Researcher @ BITS Pilani | Deep Learning & PyTorch Enthusiast",
     role: "mentor",
     college: "BITS Pilani",
     branch: "Data Science & AI",
     year: "4th Year",
+    location: "Pilani / Hyderabad, India",
     profile_photo: "",
     is_verified_mentor: true,
     is_mentor: true,
     rating: 4.8,
     completed_classes: 42,
-    skills: ["Python", "Machine Learning", "PyTorch", "FastAPI", "PostgreSQL"],
-    subjects: ["Deep Learning Fundamentals", "Applied Machine Learning", "Python for DS"],
-    bio: "AI researcher and student mentor. Love breaking down complex mathematical algorithms into intuitive concepts.",
+    skills: ["Python", "Machine Learning", "PyTorch", "FastAPI", "PostgreSQL", "Computer Vision", "NLP"],
+    subjects: ["Deep Learning Fundamentals", "Applied Machine Learning", "Python for DS", "Linear Algebra"],
+    wants_to_learn: ["Generative AI", "LangChain", "Model Quantization", "CUDA Programming"],
+    bio: "AI researcher and passionate student mentor. Love breaking down complex mathematical algorithms into intuitive, practical coding implementations.",
     github_url: "https://github.com/priyapatel",
-    portfolio_url: "https://priyapatel.ai"
+    linkedin_url: "https://linkedin.com/in/priyapatel-bits",
+    leetcode_url: "https://leetcode.com/priya_bits",
+    portfolio_url: "https://priyapatel.ai",
+    resume_name: "Priya_Patel_AI_Resume.pdf",
+    resume_url: "https://priyapatel.ai/resume.pdf",
+    projects: [
+      {
+        id: "proj_priya_1",
+        title: "MedVision: Automated Chest X-Ray Pathology Detection",
+        description: "Trained a multi-label Vision Transformer achieving 94.2% AUC for 14 lung pathologies on NIH ChestX-ray14 dataset.",
+        tech_stack: ["PyTorch", "Vision Transformers", "FastAPI", "Docker"],
+        github_url: "https://github.com/priyapatel/medvision",
+        live_url: "https://medvision.ai"
+      }
+    ],
+    achievements: [
+      {
+        id: "ach_priya_1",
+        title: "Published IEEE Conference Paper",
+        issuer: "IEEE AI & Health Summit",
+        date: "2025",
+        description: "First author on medical imaging diagnostics using transfer learning."
+      }
+    ],
+    experience: [
+      {
+        id: "exp_priya_1",
+        role: "Research Intern",
+        company: "Centre for AI Research (CAIR), BITS",
+        duration: "Jan 2025 - Present",
+        description: "Benchmarking lightweight transformer models for resource-constrained edge devices."
+      }
+    ],
+    education: [
+      {
+        id: "edu_priya_1",
+        degree: "B.E. in Computer Science & M.Sc. in Mathematics",
+        college: "BITS Pilani, Pilani Campus",
+        duration: "2022 - 2026",
+        grade: "CGPA: 9.1 / 10.0"
+      }
+    ]
   },
   {
     id: "usr_4",
     email: "rohan.verma@dtu.ac.in",
     full_name: "Rohan Verma",
+    headline: "Frontend Developer & UI/UX Geek @ DTU Delhi | React & Next.js Enthusiast",
     role: "student",
     college: "DTU Delhi",
     branch: "Information Technology",
     year: "2nd Year",
+    location: "New Delhi, India",
     profile_photo: "",
     is_verified_mentor: false,
     is_mentor: false,
     rating: 4.5,
     completed_classes: 3,
-    skills: ["JavaScript", "React", "Node.js", "C++"],
-    subjects: ["Frontend Development", "Competitive Programming"],
-    bio: "Frontend enthusiast building interactive Web apps and practicing LeetCode daily.",
+    skills: ["JavaScript", "React", "Node.js", "C++", "Tailwind CSS", "Figma", "Redux"],
+    subjects: ["Frontend Development", "Competitive Programming", "JavaScript Basics"],
+    wants_to_learn: ["Next.js App Router", "GraphQL", "WebSockets", "Docker"],
+    bio: "Frontend enthusiast building interactive Web apps with pixel-perfect design systems, micro-animations, and practicing LeetCode daily.",
     github_url: "https://github.com/rohanverma",
-    portfolio_url: ""
+    linkedin_url: "https://linkedin.com/in/rohanverma-dtu",
+    leetcode_url: "https://leetcode.com/rohan_dtu",
+    portfolio_url: "https://rohanverma.dev",
+    resume_name: "Rohan_Verma_Resume.pdf",
+    resume_url: "",
+    projects: [
+      {
+        id: "proj_rohan_1",
+        title: "DevSprint — Developer Task Management Kanban",
+        description: "Fluid drag-and-drop task workflow dashboard with real-time sync and custom themes.",
+        tech_stack: ["React", "DnD Kit", "Tailwind CSS", "Zustand"],
+        github_url: "https://github.com/rohanverma/devsprint",
+        live_url: "https://devsprint-app.vercel.app"
+      }
+    ],
+    achievements: [
+      {
+        id: "ach_rohan_1",
+        title: "Winner, DTU HackFest 2025",
+        issuer: "Delhi Technological University",
+        date: "2025",
+        description: "Built the most accessible student productivity portal in 36 hours."
+      }
+    ],
+    experience: [
+      {
+        id: "exp_rohan_1",
+        role: "Frontend Developer",
+        company: "DTU Coding Club",
+        duration: "Aug 2024 - Present",
+        description: "Maintained club web portal and organized frontend masterclasses for 200+ freshmen."
+      }
+    ],
+    education: [
+      {
+        id: "edu_rohan_1",
+        degree: "B.Tech in Information Technology",
+        college: "Delhi Technological University (DTU)",
+        duration: "2024 - 2028",
+        grade: "CGPA: 8.7 / 10.0"
+      }
+    ]
   },
   {
     id: "usr_admin",
     email: "admin@connectmitraa.edu",
     full_name: "Admin Moderator",
+    headline: "ConnectMitraa Platform Administrator & Quality Moderator",
     role: "admin",
     college: "ConnectMitraa HQ",
     branch: "Platform Admin",
     year: "Staff",
+    location: "Hyderabad, India",
     profile_photo: "",
     is_verified_mentor: true,
     is_mentor: true,
     rating: 5.0,
     completed_classes: 120,
-    skills: ["Platform Management", "Curriculum Design", "Verification Review"],
-    subjects: ["Peer Learning Operations"],
-    bio: "ConnectMitraa Platform Administrator. Reviewing mentor verifications and maintaining community standards.",
+    skills: ["Platform Management", "Curriculum Design", "Verification Review", "Community Moderation"],
+    subjects: ["Peer Learning Operations", "Community Safety"],
+    wants_to_learn: ["AI Moderation Pipelines"],
+    bio: "ConnectMitraa Platform Administrator. Reviewing mentor verifications, assisting students, and maintaining academic standards.",
     github_url: "",
-    portfolio_url: ""
+    linkedin_url: "",
+    leetcode_url: "",
+    portfolio_url: "",
+    resume_name: "",
+    resume_url: "",
+    projects: [],
+    achievements: [],
+    experience: [],
+    education: []
   }
 ];
 

@@ -125,7 +125,11 @@ export const ConnectionsPage = ({ navigate }) => {
               {myConnections.map((conn) => (
                 <div key={conn.id} className="card">
                   <div className="card-content" style={{ padding: '1rem 1.25rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                    <div 
+                      style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer' }}
+                      onClick={() => navigate(`/Profile?user=${conn.id}`)}
+                      title={`View ${conn.full_name}'s profile`}
+                    >
                       <div className="avatar-circle">
                         {(conn.full_name || 'S').charAt(0).toUpperCase()}
                       </div>
@@ -173,7 +177,11 @@ export const ConnectionsPage = ({ navigate }) => {
             pendingRequests.map((req) => (
               <div key={req.id} className="card">
                 <div className="card-content" style={{ padding: '1rem 1.25rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                  <div 
+                    style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer' }}
+                    onClick={() => navigate(`/Profile?user=${req.requester_id}`)}
+                    title={`View ${req.requester_name}'s profile`}
+                  >
                     <div className="avatar-circle">
                       {(req.requester_name || 'S').charAt(0).toUpperCase()}
                     </div>
@@ -262,7 +270,11 @@ export const ConnectionsPage = ({ navigate }) => {
               return (
                 <div key={student.id} className="card" style={{ display: 'flex', flexDirection: 'column' }}>
                   <div className="card-content" style={{ padding: '1.25rem', flex: 1, display: 'flex', flexDirection: 'column' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.75rem' }}>
+                    <div 
+                      style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.75rem', cursor: 'pointer' }}
+                      onClick={() => navigate(`/Profile?user=${student.id}`)}
+                      title={`View ${student.full_name}'s profile`}
+                    >
                       <div className="avatar-circle">
                         {(student.full_name || 'S').charAt(0).toUpperCase()}
                       </div>

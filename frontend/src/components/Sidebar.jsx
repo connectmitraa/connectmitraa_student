@@ -25,7 +25,6 @@ export const Sidebar = ({ currentRoute, navigate, isOpen, onClose }) => {
     { name: 'Connections', path: '/Connections', icon: Users },
     { name: 'Mentors', path: '/Mentors', icon: Award },
     { name: 'Chat', path: '/Chat', icon: MessageSquare },
-    { name: 'Profile', path: '/Profile', icon: User },
   ];
 
   const handleNav = (path) => {
@@ -109,7 +108,7 @@ export const Sidebar = ({ currentRoute, navigate, isOpen, onClose }) => {
           })()}
 
           {/* Persona Switcher for effortless demo testing (Student & Peer Mentor only) */}
-          <div style={{ marginTop: 'auto', padding: '0.75rem 0.25rem 0.25rem 0.25rem' }}>
+          <div style={{ marginTop: 'auto', padding: '0.75rem 0.25rem 0.75rem 0.25rem' }}>
             <div style={{ fontSize: '0.7rem', color: 'var(--muted-foreground)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.375rem' }}>
               Switch Persona
             </div>
@@ -155,53 +154,6 @@ export const Sidebar = ({ currentRoute, navigate, isOpen, onClose }) => {
             </div>
           </div>
         </nav>
-
-        {/* Profile Card Footer */}
-        <div className="sidebar-footer">
-          <a
-            href="/Profile"
-            onClick={(e) => {
-              e.preventDefault();
-              handleNav('/Profile');
-            }}
-            className="profile-card-link"
-          >
-            <div className="avatar-circle">
-              {user.profile_photo ? (
-                <img src={user.profile_photo} alt={user.full_name} />
-              ) : (
-                (user.full_name || 'U').charAt(0).toUpperCase()
-              )}
-            </div>
-            <div className="user-info">
-              <div className="user-name-row">
-                <span className="user-name">{user.full_name}</span>
-                {user.is_verified_mentor && (
-                  <CheckCircle 
-                    style={{ 
-                      width: '0.9rem', 
-                      height: '0.9rem', 
-                      color: 'var(--accent)', 
-                      flexShrink: 0 
-                    }} 
-                  />
-                )}
-              </div>
-              <p className="user-subtext">
-                {user.college || "Complete your profile"}
-              </p>
-            </div>
-          </a>
-
-          <button
-            type="button"
-            onClick={logout}
-            className="btn-logout"
-          >
-            <LogOut style={{ width: '1rem', height: '1rem' }} />
-            <span>Logout</span>
-          </button>
-        </div>
       </aside>
     </>
   );

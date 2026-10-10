@@ -15,11 +15,12 @@ import {
   Check,
   ChevronDown,
   RotateCcw,
-  Calendar
+  Calendar,
+  Lock
 } from 'lucide-react';
 
-export const DoubtsPage = () => {
-  const { user, doubts, doubtReplies, createDoubt, replyDoubt, resolveDoubt, markSolution, deleteDoubt } = useApp();
+export const DoubtsPage = ({ navigate }) => {
+  const { user, doubts, doubtReplies, createDoubt, replyDoubt, resolveDoubt, reopenDoubt, markSolution, deleteDoubt } = useApp();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [selectedDoubtId, setSelectedDoubtId] = useState(null);
   
@@ -176,11 +177,13 @@ export const DoubtsPage = () => {
             <button
               type="button"
               onClick={() => {
-                deleteDoubt(selectedDoubt.id);
-                setSelectedDoubtId(null);
+                if (window.confirm('Are you sure you want to delete this doubt? It will be moved to Recycle Bin.')) {
+                  deleteDoubt(selectedDoubt.id);
+                  setSelectedDoubtId(null);
+                }
               }}
               className="btn btn-outline btn-sm"
-              style={{ color: '#ef4444', borderColor: '#ef4444' }}
+              style={{ color: '#ef4444', borderColor: '#ef4444', display: 'flex', alignItems: 'center', gap: '0.375rem' }}
               title="Delete doubt"
             >
               <Trash2 style={{ width: '0.85rem', height: '0.85rem' }} />
@@ -192,7 +195,11 @@ export const DoubtsPage = () => {
         {/* Doubt Card */}
         <div className="card" style={{ marginBottom: '1.5rem' }}>
           <div className="card-content" style={{ padding: '1.5rem' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
+            <div 
+              style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem', cursor: 'pointer' }}
+              onClick={() => navigate?.('/Profile?user=' + (selectedDoubt.user_id || 'usr_1'))}
+              title={`View ${selectedDoubt.author_name}'s profile`}
+            >
               <div className="avatar-circle">
                 {selectedDoubt.author_photo ? (
                   <img src={selectedDoubt.author_photo} alt={selectedDoubt.author_name} />
@@ -244,17 +251,29 @@ export const DoubtsPage = () => {
               </pre>
             )}
 
-            {selectedDoubt.status === 'open' && (
-              <div style={{ marginTop: '1.25rem' }}>
-                <button
-                  type="button"
-                  onClick={() => resolveDoubt(selectedDoubt.id)}
-                  className="btn btn-outline btn-sm"
-                  style={{ borderColor: 'var(--accent)', color: 'var(--accent)' }}
-                >
-                  <CheckCircle style={{ width: '0.875rem', height: '0.875rem' }} />
-                  Mark as Resolved
-                </button>
+            {isAuthorOrAdmin && (
+              <div style={{ marginTop: '1.25rem', display: 'flex', gap: '0.5rem' }}>
+                {selectedDoubt.status === 'open' ? (
+                  <button
+                    type="button"
+                    onClick={() => resolveDoubt(selectedDoubt.id)}
+                    className="btn btn-outline btn-sm"
+                    style={{ borderColor: 'var(--accent)', color: 'var(--accent)', display: 'flex', alignItems: 'center', gap: '0.375rem' }}
+                  >
+                    <CheckCircle style={{ width: '0.875rem', height: '0.875rem' }} />
+                    Mark as Resolved
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => reopenDoubt(selectedDoubt.id)}
+                    className="btn btn-outline btn-sm"
+                    style={{ borderColor: 'var(--border)', color: 'var(--muted-foreground)', display: 'flex', alignItems: 'center', gap: '0.375rem' }}
+                  >
+                    <RotateCcw style={{ width: '0.875rem', height: '0.875rem' }} />
+                    Re-open Discussion
+                  </button>
+                )}
               </div>
             )}
           </div>
@@ -267,72 +286,108 @@ export const DoubtsPage = () => {
           </h3>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-            {replies.map((reply) => (
-              <div key={reply.id} className="card">
-                <div className="card-content" style={{ padding: '1rem 1.25rem' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem', marginBottom: '0.5rem' }}>
-                    <div className="avatar-circle" style={{ width: '1.875rem', height: '1.875rem', fontSize: '0.75rem' }}>
-                      {(reply.author_name || 'U').charAt(0).toUpperCase()}
-                    </div>
-                    <div>
-                      <p style={{ fontWeight: 600, fontSize: '0.875rem', color: 'var(--foreground)' }}>
-                        {reply.author_name}
-                      </p>
-                      <p style={{ fontSize: '0.7rem', color: 'var(--muted-foreground)' }}>
-                        {formatTimeAgo(reply.created_date)}
-                      </p>
-                    </div>
-                    {reply.is_solution ? (
-                      <span className="badge badge-success" style={{ marginLeft: 'auto' }}>
-                        Accepted Solution ✓
-                      </span>
-                    ) : (
-                      user.id === selectedDoubt.user_id && (
-                        <button
-                          type="button"
-                          onClick={() => markSolution(selectedDoubt.id, reply.id)}
-                          className="btn btn-outline btn-sm"
-                          style={{ marginLeft: 'auto', fontSize: '0.7rem', borderColor: '#10b981', color: '#059669', padding: '0.2rem 0.5rem' }}
-                        >
-                          <Check style={{ width: '0.75rem', height: '0.75rem' }} />
-                          Accept as Solution
-                        </button>
-                      )
-                    )}
-                  </div>
-                  <p style={{ fontSize: '0.875rem', color: 'var(--foreground)', lineHeight: 1.5, whiteSpace: 'pre-wrap' }}>
-                    {reply.content}
-                  </p>
-                </div>
+            {replies.length === 0 ? (
+              <div className="card" style={{ padding: '1.5rem', textAlign: 'center', color: 'var(--muted-foreground)', fontSize: '0.875rem' }}>
+                No replies yet. Be the first to answer!
               </div>
-            ))}
+            ) : (
+              replies.map((reply) => (
+                <div key={reply.id} className="card">
+                  <div className="card-content" style={{ padding: '1rem 1.25rem' }}>
+                    <div 
+                      style={{ display: 'flex', alignItems: 'center', gap: '0.625rem', marginBottom: '0.5rem', cursor: 'pointer' }}
+                      onClick={() => navigate?.('/Profile?user=' + (reply.user_id || 'usr_2'))}
+                      title={`View ${reply.author_name}'s profile`}
+                    >
+                      <div className="avatar-circle" style={{ width: '1.875rem', height: '1.875rem', fontSize: '0.75rem' }}>
+                        {(reply.author_name || 'U').charAt(0).toUpperCase()}
+                      </div>
+                      <div>
+                        <p style={{ fontWeight: 600, fontSize: '0.875rem', color: 'var(--foreground)' }}>
+                          {reply.author_name}
+                        </p>
+                        <p style={{ fontSize: '0.7rem', color: 'var(--muted-foreground)' }}>
+                          {formatTimeAgo(reply.created_date)}
+                        </p>
+                      </div>
+                      {reply.is_solution ? (
+                        <span className="badge badge-success" style={{ marginLeft: 'auto' }}>
+                          Accepted Solution ✓
+                        </span>
+                      ) : (
+                        user.id === selectedDoubt.user_id && selectedDoubt.status === 'open' && (
+                          <button
+                            type="button"
+                            onClick={() => markSolution(selectedDoubt.id, reply.id)}
+                            className="btn btn-outline btn-sm"
+                            style={{ marginLeft: 'auto', fontSize: '0.7rem', borderColor: '#10b981', color: '#059669', padding: '0.2rem 0.5rem' }}
+                          >
+                            <Check style={{ width: '0.75rem', height: '0.75rem' }} />
+                            Accept as Solution
+                          </button>
+                        )
+                      )}
+                    </div>
+                    <p style={{ fontSize: '0.875rem', color: 'var(--foreground)', lineHeight: 1.5, whiteSpace: 'pre-wrap' }}>
+                      {reply.content}
+                    </p>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         </div>
 
-        {/* Reply Composer */}
-        <div className="card">
-          <div className="card-content" style={{ padding: '1rem 1.25rem' }}>
-            <textarea
-              className="textarea"
-              rows={3}
-              placeholder="Write your explanation or peer answer..."
-              value={replyText}
-              onChange={(e) => setReplyText(e.target.value)}
-              style={{ resize: 'none', marginBottom: '0.75rem' }}
-            />
-            <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-              <button
-                type="button"
-                onClick={() => handleSendReply(selectedDoubt.id)}
-                disabled={!replyText.trim()}
-                className="btn btn-primary"
-              >
-                <Send style={{ width: '0.875rem', height: '0.875rem' }} />
-                Reply
-              </button>
+        {/* Reply Composer or Resolved Banner */}
+        {selectedDoubt.status === 'resolved' ? (
+          <div
+            className="card"
+            style={{
+              padding: '1.25rem 1.5rem',
+              borderRadius: 'var(--radius)',
+              backgroundColor: 'var(--secondary)',
+              border: '1px dashed var(--border)',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '0.375rem',
+              textAlign: 'center'
+            }}
+          >
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', color: '#059669', fontWeight: 600, fontSize: '0.875rem' }}>
+              <Lock style={{ width: '1rem', height: '1rem' }} />
+              This discussion has been marked as Resolved
+            </div>
+            <p style={{ fontSize: '0.75rem', color: 'var(--muted-foreground)', margin: 0 }}>
+              New replies are closed because a solution has been found.
+            </p>
+          </div>
+        ) : (
+          <div className="card">
+            <div className="card-content" style={{ padding: '1rem 1.25rem' }}>
+              <textarea
+                className="textarea"
+                rows={3}
+                placeholder="Write your explanation or peer answer..."
+                value={replyText}
+                onChange={(e) => setReplyText(e.target.value)}
+                style={{ resize: 'none', marginBottom: '0.75rem' }}
+              />
+              <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                <button
+                  type="button"
+                  onClick={() => handleSendReply(selectedDoubt.id)}
+                  disabled={!replyText.trim()}
+                  className="btn btn-primary"
+                >
+                  <Send style={{ width: '0.875rem', height: '0.875rem' }} />
+                  Reply
+                </button>
+              </div>
             </div>
           </div>
-        </div>
+        )}
       </div>
     );
   }
@@ -535,33 +590,34 @@ export const DoubtsPage = () => {
             >
               <div className="card-content" style={{ padding: '1.25rem' }}>
                 <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.875rem' }}>
-                  <div className="avatar-circle">
+                  <div 
+                    className="avatar-circle"
+                    style={{ cursor: 'pointer' }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate?.('/Profile?user=' + (doubt.user_id || 'usr_1'));
+                    }}
+                    title={`View ${doubt.author_name}'s profile`}
+                  >
                     {(doubt.author_name || 'S').charAt(0).toUpperCase()}
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.25rem' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        <span style={{ fontWeight: 600, fontSize: '0.875rem', color: 'var(--foreground)' }}>
+                        <span 
+                          style={{ fontWeight: 600, fontSize: '0.875rem', color: 'var(--foreground)', cursor: 'pointer' }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            navigate?.('/Profile?user=' + (doubt.user_id || 'usr_1'));
+                          }}
+                          title={`View ${doubt.author_name}'s profile`}
+                        >
                           {doubt.author_name}
                         </span>
                         <span style={{ fontSize: '0.75rem', color: 'var(--muted-foreground)' }}>
                           {formatTimeAgo(doubt.created_date)}
                         </span>
                       </div>
-                      {(user.id === doubt.user_id || user.role === 'admin') && (
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            deleteDoubt(doubt.id);
-                          }}
-                          className="btn btn-ghost btn-sm"
-                          style={{ color: '#ef4444', padding: '0.2rem 0.4rem' }}
-                          title="Delete doubt"
-                        >
-                          <Trash2 style={{ width: '0.85rem', height: '0.85rem' }} />
-                        </button>
-                      )}
                     </div>
 
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.375rem', marginBottom: '0.5rem' }}>

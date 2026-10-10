@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import {
   HelpCircle,
@@ -14,7 +14,8 @@ import {
   Code2,
   Send,
   Sparkles,
-  Trash2
+  Trash2,
+  MoreVertical
 } from 'lucide-react';
 
 export const FeedPage = () => {
@@ -26,6 +27,22 @@ export const FeedPage = () => {
   const [expandedComments, setExpandedComments] = useState({});
   const [commentInputs, setCommentInputs] = useState({});
   const [feedCategoryFilter, setFeedCategoryFilter] = useState('all');
+  const [activeMenuPostId, setActiveMenuPostId] = useState(null);
+
+  useEffect(() => {
+    const handleOutsideClick = () => setActiveMenuPostId(null);
+    if (activeMenuPostId) {
+      window.addEventListener('click', handleOutsideClick);
+      return () => window.removeEventListener('click', handleOutsideClick);
+    }
+  }, [activeMenuPostId]);
+
+  const handleDeletePost = (postId) => {
+    setActiveMenuPostId(null);
+    if (window.confirm('Are you sure you want to delete this post? It will be moved to Recycle Bin.')) {
+      deletePost(postId);
+    }
+  };
 
   const postTypes = [
     { value: 'question', label: 'Ask', icon: HelpCircle, color: 'text-amber-600', bg: 'bg-amber-50', style: { color: '#d97706', backgroundColor: '#fffbeb' } },
@@ -281,7 +298,11 @@ export const FeedPage = () => {
                 <div className="card-content" style={{ padding: '1.25rem' }}>
                   {/* Author Info */}
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                    <div
+                      style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer' }}
+                      onClick={() => navigate(`/Profile?user=${post.user_id || 'usr_1'}`)}
+                      title={`View ${post.author_name}'s Profile`}
+                    >
                       <div className="avatar-circle">
                         {post.author_photo ? (
                           <img src={post.author_photo} alt={post.author_name} />
@@ -324,17 +345,66 @@ export const FeedPage = () => {
                         {typeMeta.label}
                       </span>
 
-                      {/* Delete button if author or admin */}
+                      {/* Manage / Delete dropdown if author or admin */}
                       {isAuthorOrAdmin && (
-                        <button
-                          type="button"
-                          onClick={() => deletePost(post.id)}
-                          className="btn btn-ghost btn-sm"
-                          style={{ color: '#ef4444', padding: '0.25rem' }}
-                          title="Delete post"
-                        >
-                          <Trash2 style={{ width: '0.9rem', height: '0.9rem' }} />
-                        </button>
+                        <div style={{ position: 'relative' }}>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setActiveMenuPostId(activeMenuPostId === post.id ? null : post.id);
+                            }}
+                            className="btn btn-ghost btn-sm"
+                            style={{ color: 'var(--muted-foreground)', padding: '0.25rem', borderRadius: '50%' }}
+                            title="More options"
+                          >
+                            <MoreVertical style={{ width: '1rem', height: '1rem' }} />
+                          </button>
+
+                          {activeMenuPostId === post.id && (
+                            <div
+                              style={{
+                                position: 'absolute',
+                                right: 0,
+                                top: '100%',
+                                marginTop: '0.25rem',
+                                backgroundColor: 'var(--card)',
+                                border: '1px solid var(--border)',
+                                borderRadius: 'var(--radius)',
+                                boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                                zIndex: 30,
+                                minWidth: '135px',
+                                overflow: 'hidden'
+                              }}
+                            >
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleDeletePost(post.id);
+                                }}
+                                style={{
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: '0.5rem',
+                                  width: '100%',
+                                  padding: '0.5rem 0.75rem',
+                                  fontSize: '0.8125rem',
+                                  color: '#ef4444',
+                                  background: 'none',
+                                  border: 'none',
+                                  cursor: 'pointer',
+                                  textAlign: 'left'
+                                }}
+                                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--secondary)')}
+                                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+                              >
+                                <Trash2 style={{ width: '0.875rem', height: '0.875rem' }} />
+                                Delete Post
+                              </button>
+                            </div>
+                          )}
+                        </div>
                       )}
                     </div>
                   </div>
@@ -473,13 +543,19 @@ export const FeedPage = () => {
                       >
                         <div
                           className="avatar-circle"
-                          style={{ width: '1.75rem', height: '1.75rem', fontSize: '0.75rem' }}
+                          style={{ width: '1.75rem', height: '1.75rem', fontSize: '0.75rem', cursor: 'pointer' }}
+                          onClick={() => navigate(`/Profile?user=${comment.user_id || 'usr_1'}`)}
+                          title={`View ${comment.author_name}'s Profile`}
                         >
                           {(comment.author_name || 'U').charAt(0).toUpperCase()}
                         </div>
                         <div style={{ flex: 1 }}>
                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <span style={{ fontWeight: 600, color: 'var(--foreground)' }}>
+                            <span
+                              style={{ fontWeight: 600, color: 'var(--foreground)', cursor: 'pointer' }}
+                              onClick={() => navigate(`/Profile?user=${comment.user_id || 'usr_1'}`)}
+                              title={`View ${comment.author_name}'s Profile`}
+                            >
                               {comment.author_name}
                             </span>
                             <span style={{ fontSize: '0.7rem', color: 'var(--muted-foreground)' }}>

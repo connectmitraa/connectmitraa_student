@@ -385,6 +385,11 @@ export const AppProvider = ({ children }) => {
   };
 
   const replyDoubt = (doubtId, content) => {
+    const targetDoubt = doubts.find(d => d.id === doubtId);
+    if (targetDoubt && targetDoubt.status === "resolved") {
+      showToast("This doubt is resolved and locked for new replies.", "error");
+      return;
+    }
     const newReply = {
       id: `drep_${Date.now()}`,
       doubt_id: doubtId,
@@ -403,6 +408,11 @@ export const AppProvider = ({ children }) => {
   const resolveDoubt = (doubtId) => {
     setDoubts(prev => prev.map(d => d.id === doubtId ? { ...d, status: "resolved" } : d));
     showToast("Doubt marked as resolved! 🎉");
+  };
+
+  const reopenDoubt = (doubtId) => {
+    setDoubts(prev => prev.map(d => d.id === doubtId ? { ...d, status: "open" } : d));
+    showToast("Doubt re-opened for new answers.");
   };
 
   const markSolution = (doubtId, replyId) => {
@@ -725,16 +735,37 @@ export const AppProvider = ({ children }) => {
   };
 
 
+  const getUserProfile = (userIdOrName) => {
+    if (!userIdOrName) return user;
+    const clean = String(userIdOrName).toLowerCase().trim();
+    return (
+      allUsers.find(u => u.id.toLowerCase() === clean) ||
+      allUsers.find(u => u.full_name.toLowerCase().replace(/\s+/g, '-') === clean) ||
+      allUsers.find(u => u.full_name.toLowerCase() === clean) ||
+      allUsers.find(u => u.email.toLowerCase() === clean) ||
+      allUsers[0]
+    );
+  };
+
   const updateProfile = (profileData) => {
-    setAllUsers(prev => prev.map(u => {
-      if (u.id === user.id) {
-        return {
-          ...u,
-          ...profileData
-        };
-      }
-      return u;
-    }));
+    setUser(prev => {
+      const updated = { ...prev, ...profileData };
+      localStorage.setItem('studyloop_active_user', JSON.stringify(updated));
+      return updated;
+    });
+    setAllUsers(prev => {
+      const updatedList = prev.map(u => {
+        if (u.id === user.id) {
+          return {
+            ...u,
+            ...profileData
+          };
+        }
+        return u;
+      });
+      localStorage.setItem('studyloop_users', JSON.stringify(updatedList));
+      return updatedList;
+    });
     showToast("Profile updated successfully!");
   };
 
@@ -778,6 +809,7 @@ export const AppProvider = ({ children }) => {
         createDoubt,
         replyDoubt,
         resolveDoubt,
+        reopenDoubt,
         deleteDoubt,
         restoreDoubt,
         permanentDeleteDoubt,
@@ -804,6 +836,7 @@ export const AppProvider = ({ children }) => {
         emptyRecycleBin,
         updatePlatformSettings,
         updateProfile,
+        getUserProfile,
         isAdminAuthenticated,
         adminLogin,
         adminLogout

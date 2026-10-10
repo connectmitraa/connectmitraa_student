@@ -85,7 +85,11 @@ export const MentorsPage = ({ navigate }) => {
           <div key={mentor.id} className="card" style={{ display: 'flex', flexDirection: 'column' }}>
             <div className="card-content" style={{ padding: '1.25rem', flex: 1, display: 'flex', flexDirection: 'column' }}>
               {/* Profile Top */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.875rem', marginBottom: '0.875rem' }}>
+              <div 
+                style={{ display: 'flex', alignItems: 'center', gap: '0.875rem', marginBottom: '0.875rem', cursor: 'pointer' }}
+                onClick={() => navigate(`/Profile?user=${mentor.id}`)}
+                title={`View ${mentor.full_name}'s full profile`}
+              >
                 <div className="avatar-circle" style={{ width: '2.75rem', height: '2.75rem', fontSize: '1.125rem' }}>
                   {(mentor.full_name || 'M').charAt(0).toUpperCase()}
                 </div>
@@ -168,7 +172,7 @@ export const MentorsPage = ({ navigate }) => {
               <div style={{ display: 'flex', gap: '0.5rem', marginTop: 'auto' }}>
                 <button
                   type="button"
-                  onClick={() => setSelectedMentor(mentor)}
+                  onClick={() => navigate(`/Profile?user=${mentor.id}`)}
                   className="btn btn-outline btn-sm"
                   style={{ flex: 1 }}
                 >

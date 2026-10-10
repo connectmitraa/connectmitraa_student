@@ -199,7 +199,11 @@ export const ChatPage = ({ navigate, currentRoute }) => {
                 justifyContent: 'space-between'
               }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+              <div 
+                style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer' }}
+                onClick={() => navigate?.(`/Profile?user=${selectedUser.id}`)}
+                title={`View ${selectedUser.full_name}'s profile`}
+              >
                 <div className="avatar-circle">
                   {(selectedUser.full_name || 'U').charAt(0).toUpperCase()}
                 </div>
@@ -217,6 +221,17 @@ export const ChatPage = ({ navigate, currentRoute }) => {
                     <span>Online • {selectedUser.college || 'Peer Student'}</span>
                   </div>
                 </div>
+              </div>
+
+              <div>
+                <button
+                  type="button"
+                  onClick={() => navigate?.(`/Profile?user=${selectedUser.id}`)}
+                  className="btn btn-outline btn-sm"
+                  style={{ fontSize: '0.75rem', padding: '0.25rem 0.625rem' }}
+                >
+                  View Profile
+                </button>
               </div>
             </div>
 
